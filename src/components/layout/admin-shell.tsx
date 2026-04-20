@@ -156,6 +156,10 @@ function AdminShellBody({ title, children }: AdminShellProps) {
           </Link>
         </div>
       </nav>
+
+      <p className="pointer-events-none fixed bottom-24 right-4 z-40 text-[10px] font-semibold tracking-wide text-slate-400 dark:text-zinc-600 lg:bottom-4">
+        Copyright by SNK DevWorks
+      </p>
     </div>
   );
 }
