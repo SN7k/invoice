@@ -33,7 +33,8 @@ export default function SecurityGuard() {
     };
 
     const onKeyDown = (event: KeyboardEvent) => {
-      const key = event.key.toLowerCase();
+      const rawKey = typeof event.key === 'string' ? event.key : '';
+      const key = rawKey.toLowerCase();
       const ctrlOrMeta = event.ctrlKey || event.metaKey;
       const ctrlShift = ctrlOrMeta && event.shiftKey;
 

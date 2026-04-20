@@ -1,9 +1,9 @@
 "use client";
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Activity, BarChart3, FileText, LineChart, Plus, TrendingUp, Users, Wallet } from 'lucide-react';
-import { MOCK_INVOICES } from '@/lib/mock-data';
+import { getLocalInvoices, subscribeLocalInvoices, type LocalInvoiceRecord } from '@/lib/demo-invoices';
 
 type SalesPoint = {
   day: string;
@@ -55,7 +55,24 @@ const SALES_TREND_30D: SalesPoint[] = [
 
 export default function DashboardPage() {
   const [trendRange, setTrendRange] = useState<'7d' | '30d'>('7d');
+  const [invoices, setInvoices] = useState<LocalInvoiceRecord[]>([]);
   const activeTrendData = trendRange === '7d' ? SALES_TREND_7D : SALES_TREND_30D;
+
+  useEffect(() => {
+    const loadInvoices = () => setInvoices(getLocalInvoices());
+    loadInvoices();
+
+    return subscribeLocalInvoices(loadInvoices);
+  }, []);
+
+  const totalSales = useMemo(
+    () => invoices.reduce((sum, invoice) => sum + invoice.amount, 0),
+    [invoices]
+  );
+
+  const totalInvoices = invoices.length;
+  const pendingInvoices = Math.floor(totalInvoices * 0.2);
+  const recentInvoices = invoices.slice(0, 5);
 
   return (
     <section className="space-y-8 animate-in fade-in duration-300">
@@ -92,7 +109,7 @@ export default function DashboardPage() {
                 <TrendingUp className="mr-1 h-3 w-3" strokeWidth={2.5} /> +12%
               </span>
             </div>
-            <h3 className="text-3xl font-bold tracking-tight text-slate-800 dark:text-white">Rs. 45,230</h3>
+            <h3 className="text-3xl font-bold tracking-tight text-slate-800 dark:text-white">Rs. {totalSales.toLocaleString()}</h3>
           </div>
         </article>
 
@@ -118,10 +135,10 @@ export default function DashboardPage() {
             <div className="mb-2 flex items-start justify-between">
               <p className="text-sm font-medium text-slate-500 dark:text-[#a3a3a3]">Total Invoices</p>
               <span className="inline-flex items-center rounded-md border border-amber-100 bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-600 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-400">
-                24 Pending
+                {pendingInvoices} Pending
               </span>
             </div>
-            <h3 className="text-3xl font-bold tracking-tight text-slate-800 dark:text-white">128</h3>
+            <h3 className="text-3xl font-bold tracking-tight text-slate-800 dark:text-white">{totalInvoices}</h3>
           </div>
         </article>
 
@@ -163,14 +180,14 @@ export default function DashboardPage() {
             <Activity className="mr-2 h-5 w-5 text-blue-500 dark:text-indigo-400" /> Recent Activity
           </h4>
           <div className="space-y-5">
-            {[1, 2, 3, 4].map((index) => (
-              <div key={index} className="flex items-center gap-4">
+            {recentInvoices.slice(0, 4).map((invoice) => (
+              <div key={invoice.id} className="flex items-center gap-4">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full border border-transparent bg-blue-50 dark:border-[#282828] dark:bg-[#030303]">
                   <FileText className="h-5 w-5 text-blue-500 dark:text-indigo-400" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-slate-800 dark:text-[#ededed]">Invoice INV-00{index} created</p>
-                  <p className="mt-0.5 text-xs text-slate-400 dark:text-[#737373]">2 hours ago</p>
+                  <p className="text-sm font-medium text-slate-800 dark:text-[#ededed]">Invoice {invoice.id} created</p>
+                  <p className="mt-0.5 text-xs text-slate-400 dark:text-[#737373]">Client: {invoice.client}</p>
                 </div>
               </div>
             ))}
@@ -275,7 +292,7 @@ export default function DashboardPage() {
               </tr>
             </thead>
             <tbody>
-              {MOCK_INVOICES.map((invoice) => (
+              {recentInvoices.map((invoice) => (
                 <tr key={invoice.id} className="border-b border-slate-50 transition-colors last:border-0 hover:bg-slate-50/50 dark:border-[#282828] dark:hover:bg-[#282828]/50">
                   <td className="px-2 py-4 text-sm font-medium text-slate-800 dark:text-[#ededed]">{invoice.id}</td>
                   <td className="px-2 py-4 text-sm text-slate-600 dark:text-[#d4d4d4]">{invoice.client}</td>

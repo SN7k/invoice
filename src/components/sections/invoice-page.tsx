@@ -1,12 +1,24 @@
+"use client";
+
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { FileText, MoreVertical, Plus } from 'lucide-react';
-import { MOCK_INVOICES } from '@/lib/mock-data';
+import { getLocalInvoices, subscribeLocalInvoices, type LocalInvoiceRecord } from '@/lib/demo-invoices';
 
 export default function InvoicePage() {
+  const [invoices, setInvoices] = useState<LocalInvoiceRecord[]>([]);
+
+  useEffect(() => {
+    const loadInvoices = () => setInvoices(getLocalInvoices());
+    loadInvoices();
+
+    return subscribeLocalInvoices(loadInvoices);
+  }, []);
+
   return (
     <section className="relative h-full animate-in fade-in duration-300">
       <div className="space-y-3 md:hidden">
-        {MOCK_INVOICES.map((invoice) => (
+        {invoices.map((invoice) => (
           <article key={invoice.id} className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm transition-colors dark:border-[#282828] dark:bg-[#1f1f1f]">
             <div className="flex items-start gap-3">
               <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 dark:bg-[#111111] dark:text-indigo-400">
@@ -42,7 +54,7 @@ export default function InvoicePage() {
             </tr>
           </thead>
           <tbody>
-            {MOCK_INVOICES.map((invoice) => (
+            {invoices.map((invoice) => (
               <tr key={invoice.id} className="cursor-pointer border-b border-slate-50 transition-colors hover:bg-slate-50/50 dark:border-[#282828] dark:hover:bg-[#282828]/50">
                 <td className="px-6 py-4">
                   <p className="font-bold text-slate-800 dark:text-[#ededed]">{invoice.id}</p>

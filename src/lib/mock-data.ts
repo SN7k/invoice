@@ -23,15 +23,15 @@ export interface MockService {
 }
 
 export const MOCK_INVOICES: MockInvoice[] = [
-  { id: 'INV-001', client: 'Acme Corp', amount: 1250, date: '2026-04-18' },
-  { id: 'INV-002', client: 'Global Tech', amount: 840, date: '2026-04-17' },
-  { id: 'INV-003', client: 'Sarah Connor', amount: 200, date: '2026-04-15' }
+  { id: 'INV-001', client: 'SNK', amount: 1250, date: '2026-04-18' },
+  { id: 'INV-002', client: 'Shombhu karan', amount: 840, date: '2026-04-17' },
+  { id: 'INV-003', client: 'Suman biswas', amount: 200, date: '2026-04-15' }
 ];
 
 export const MOCK_CLIENTS: MockClient[] = [
   {
     id: 1,
-    name: 'Acme Corp',
+    name: 'SNK',
     phone: '9876543210',
     email: 'billing@acme.com',
     spent: 15400,
@@ -40,7 +40,7 @@ export const MOCK_CLIENTS: MockClient[] = [
   },
   {
     id: 2,
-    name: 'Global Tech',
+    name: 'Shombhu karan',
     phone: '9988776655',
     email: 'accounts@gtech.com',
     spent: 8400,
@@ -49,7 +49,7 @@ export const MOCK_CLIENTS: MockClient[] = [
   },
   {
     id: 3,
-    name: 'Sarah Connor',
+    name: 'Suman biswas',
     phone: '9123456789',
     email: 'sarah@example.com',
     spent: 2000,
