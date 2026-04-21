@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { Box, CheckCircle2, Gift, Mail, Phone, Receipt, Smartphone, Sparkles, User, Plus } from 'lucide-react';
-import { MOCK_CLIENTS } from '@/lib/mock-data';
+import { MOCK_CLIENTS, type MockService } from '@/lib/mock-data';
 import { addLocalInvoice, type LocalInvoiceRecord } from '@/lib/demo-invoices';
+import { getLocalServices, subscribeLocalServices } from '@/lib/demo-services';
 
 interface InvoiceLine {
+  serviceId: string;
   desc: string;
   price: string;
   qty: number;
@@ -15,7 +17,8 @@ export default function InvoiceForm() {
   const [phone, setPhone] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [items, setItems] = useState<InvoiceLine[]>([{ desc: '', price: '', qty: 1 }]);
+  const [items, setItems] = useState<InvoiceLine[]>([{ serviceId: '', desc: '', price: '', qty: 1 }]);
+  const [services, setServices] = useState<MockService[]>([]);
   const [usePoints, setUsePoints] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isSendingWhatsApp, setIsSendingWhatsApp] = useState(false);
@@ -39,6 +42,14 @@ export default function InvoiceForm() {
     }
   }, [matchedClient, phone]);
 
+  useEffect(() => {
+    setServices(getLocalServices());
+
+    return subscribeLocalServices(() => {
+      setServices(getLocalServices());
+    });
+  }, []);
+
   const subtotal = items.reduce((sum, item) => sum + Number(item.price || 0) * Number(item.qty || 0), 0);
   const availablePoints = matchedClient ? matchedClient.points : 0;
   const maxDiscount = Math.min(subtotal, availablePoints);
@@ -61,6 +72,21 @@ export default function InvoiceForm() {
 
   const updateItem = (index: number, patch: Partial<InvoiceLine>) => {
     setItems((previous) => previous.map((item, itemIndex) => (itemIndex === index ? { ...item, ...patch } : item)));
+  };
+
+  const handleSelectService = (index: number, serviceId: string) => {
+    const selectedService = services.find((service) => String(service.id) === serviceId);
+
+    if (!selectedService) {
+      updateItem(index, { serviceId, desc: '', price: '' });
+      return;
+    }
+
+    updateItem(index, {
+      serviceId,
+      desc: selectedService.name,
+      price: String(selectedService.price)
+    });
   };
 
   const removeItem = (index: number) => {
@@ -336,13 +362,18 @@ export default function InvoiceForm() {
               {items.map((item, index) => (
                 <div key={`line-${index}`} className="group relative flex flex-col items-start gap-4 sm:flex-row sm:items-center">
                   <div className="w-full flex-1">
-                    <input
-                      type="text"
-                      value={item.desc}
-                      onChange={(event) => updateItem(index, { desc: event.target.value })}
+                    <select
+                      value={item.serviceId}
+                      onChange={(event) => handleSelectService(index, event.target.value)}
                       className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-800 outline-none transition-all focus:ring-2 focus:ring-blue-500 dark:border-[#282828] dark:bg-[#030303] dark:text-white dark:focus:ring-indigo-500/50"
-                      placeholder="e.g., Premium Hair Spa"
-                    />
+                    >
+                      <option value="">Select service</option>
+                      {services.map((service) => (
+                        <option key={service.id} value={String(service.id)}>
+                          {service.name} (Rs. {service.price})
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   <div className="w-full sm:w-24">
@@ -386,11 +417,16 @@ export default function InvoiceForm() {
               <div className="pt-2">
                 <button
                   type="button"
-                  onClick={() => setItems((previous) => [...previous, { desc: '', price: '', qty: 1 }])}
+                  onClick={() => setItems((previous) => [...previous, { serviceId: '', desc: '', price: '', qty: 1 }])}
                   className="inline-flex items-center rounded-lg bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-600 transition-colors hover:text-blue-700 dark:bg-indigo-500/10 dark:text-indigo-400 dark:hover:text-indigo-300"
                 >
                   <Plus className="mr-1.5 h-4 w-4" /> Add another service
                 </button>
+                {services.length === 0 ? (
+                  <p className="pt-2 text-sm text-slate-500 dark:text-[#a3a3a3]">
+                    No services found. Add services from the Services page first.
+                  </p>
+                ) : null}
               </div>
             </div>
           </article>

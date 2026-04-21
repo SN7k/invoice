@@ -53,7 +53,7 @@ function AdminShellBody({ title, children }: AdminShellProps) {
   const isCreateInvoiceActive = pathname === '/invoices/create';
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50 text-slate-800 antialiased transition-colors duration-300 dark:bg-[#030303] dark:text-white">
+    <div className="flex min-h-[100dvh] overflow-x-hidden bg-slate-50 text-slate-800 antialiased transition-colors duration-300 dark:bg-[#030303] dark:text-white">
       <div
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
@@ -70,11 +70,11 @@ function AdminShellBody({ title, children }: AdminShellProps) {
         />
       </div>
 
-      <main className="relative z-10 flex h-screen min-w-0 flex-1 flex-col transition-all duration-300">
+      <main className="relative z-10 flex min-h-[100dvh] min-w-0 flex-1 flex-col transition-all duration-300 lg:h-[100dvh] lg:min-h-0">
         <Topbar />
 
-        <div className="relative mx-2 flex-1 overflow-hidden rounded-t-xl border border-b-0 border-slate-200/80 bg-white shadow-[0_0_15px_-3px_rgba(0,0,0,0.05)] transition-colors duration-300 dark:border-[#282828] dark:bg-[#0a0a0a] dark:shadow-[0_0_40px_-10px_rgba(0,0,0,1)]">
-          <div className="custom-scrollbar absolute inset-0 overflow-auto p-6 pb-32 md:p-8 md:pb-10 lg:p-10">
+        <div className="relative mx-2 flex-1 overflow-hidden rounded-t-xl border border-b-0 border-slate-200/80 bg-white shadow-[0_0_15px_-3px_rgba(0,0,0,0.05)] transition-colors duration-300 dark:border-[#282828] dark:bg-[#0a0a0a] dark:shadow-[0_0_40px_-10px_rgba(0,0,0,1)] lg:min-h-0">
+          <div className="custom-scrollbar h-full touch-pan-y overflow-y-auto overflow-x-hidden p-6 pb-32 [-webkit-overflow-scrolling:touch] md:p-8 md:pb-10 lg:p-10">
             <div className="mx-auto w-full max-w-[96rem]">{children}</div>
           </div>
         </div>

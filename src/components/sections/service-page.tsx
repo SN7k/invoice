@@ -1,17 +1,31 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Box, MoreVertical, Plus } from 'lucide-react';
 import AddServiceModal from '@/components/service/add-service-modal';
-import { MOCK_SERVICES } from '@/lib/mock-data';
+import { type MockService } from '@/lib/mock-data';
+import { addLocalService, getLocalServices, subscribeLocalServices } from '@/lib/demo-services';
 
 export default function ServicePage() {
   const [isAddServiceOpen, setIsAddServiceOpen] = useState(false);
+  const [services, setServices] = useState<MockService[]>([]);
+
+  useEffect(() => {
+    setServices(getLocalServices());
+
+    return subscribeLocalServices(() => {
+      setServices(getLocalServices());
+    });
+  }, []);
+
+  const handleAddService = (service: { name: string; price: number }) => {
+    addLocalService(service);
+  };
 
   return (
     <section className="relative h-full animate-in fade-in duration-300">
       <div className="grid grid-cols-1 gap-6 pb-20 md:grid-cols-3">
-        {MOCK_SERVICES.map((item) => (
+        {services.map((item) => (
           <article key={item.id} className="flex flex-col rounded-2xl border border-slate-100 bg-white p-6 shadow-sm transition-colors hover:border-slate-200 dark:border-[#282828] dark:bg-[#1f1f1f] dark:hover:border-[#444]">
             <div className="mb-4 flex items-start justify-between">
               <div className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-100 bg-slate-50 dark:border-[#282828] dark:bg-[#111111]">
@@ -36,7 +50,11 @@ export default function ServicePage() {
         <Plus className="h-6 w-6" strokeWidth={2.5} />
       </button>
 
-      <AddServiceModal isOpen={isAddServiceOpen} onClose={() => setIsAddServiceOpen(false)} />
+      <AddServiceModal
+        isOpen={isAddServiceOpen}
+        onClose={() => setIsAddServiceOpen(false)}
+        onAddService={handleAddService}
+      />
     </section>
   );
 }
