@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Box, CheckCircle2, Gift, Mail, Phone, Receipt, Smartphone, Sparkles, User, Plus } from 'lucide-react';
+import { Box, CheckCircle2, Gift, Mail, Phone, Receipt, Smartphone, User, Plus } from 'lucide-react';
 import { MOCK_CLIENTS, type MockService } from '@/lib/mock-data';
 import { addLocalInvoice, type LocalInvoiceRecord } from '@/lib/demo-invoices';
 import { getLocalServices, subscribeLocalServices } from '@/lib/demo-services';
@@ -50,12 +50,22 @@ export default function InvoiceForm() {
     });
   }, []);
 
+  useEffect(() => {
+    if (!createdInvoice) {
+      return;
+    }
+
+    setCreatedInvoice(null);
+    setSuccessMessage('');
+  }, [phone, name, email, usePoints, items]);
+
   const subtotal = items.reduce((sum, item) => sum + Number(item.price || 0) * Number(item.qty || 0), 0);
   const availablePoints = matchedClient ? matchedClient.points : 0;
   const maxDiscount = Math.min(subtotal, availablePoints);
   const discountAmount = usePoints ? maxDiscount : 0;
   const finalTotal = subtotal - discountAmount;
   const pointsEarned = Math.floor(finalTotal / 100);
+  const isInvoiceCreated = Boolean(createdInvoice);
   const today = new Date();
   const day = String(today.getDate()).padStart(2, '0');
   const month = today.toLocaleDateString('en-US', { month: 'long' });
@@ -441,7 +451,7 @@ export default function InvoiceForm() {
             </div>
 
             <div className="p-3 sm:p-4">
-              <div className="relative mx-auto aspect-[3/4.25] w-full max-w-[560px] overflow-hidden border border-slate-200 bg-[#efeff0] p-6 text-slate-900 shadow-[0_12px_30px_rgba(0,0,0,0.08)] dark:border-[#3a3a3a] dark:bg-[#efeff0] sm:p-8">
+              <div className="relative mx-auto w-full max-w-[560px] overflow-hidden border border-slate-200 bg-[#efeff0] p-4 text-slate-900 shadow-[0_12px_30px_rgba(0,0,0,0.08)] min-h-[560px] dark:border-[#3a3a3a] dark:bg-[#efeff0] sm:aspect-[3/4.25] sm:min-h-0 sm:p-8">
                 <div className="relative z-10">
                   <div className="mb-10 flex items-start justify-between">
                     <p className="text-[10px] font-semibold uppercase leading-tight tracking-[0.14em] text-slate-700">
@@ -452,13 +462,13 @@ export default function InvoiceForm() {
                     <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-600">No. 000001</p>
                   </div>
 
-                  <h4 className="mb-7 text-[64px] font-extrabold uppercase leading-[0.95] tracking-[-0.03em] text-slate-900">Invoice</h4>
+                  <h4 className="mb-6 text-[40px] font-extrabold uppercase leading-[0.95] tracking-[-0.03em] text-slate-900 sm:mb-7 sm:text-[64px]">Invoice</h4>
 
-                  <p className="mb-8 text-[17px] text-slate-800">
+                  <p className="mb-7 text-[14px] text-slate-800 sm:mb-8 sm:text-[17px]">
                     <span className="font-bold">Date:</span> {formattedDate}
                   </p>
 
-                  <div className="mb-7 grid grid-cols-2 gap-5">
+                  <div className="mb-7 grid grid-cols-1 gap-5 sm:grid-cols-2">
                     <div>
                       <p className="mb-1 text-[14px] font-bold">Billed to:</p>
                       <p className="text-[13px] leading-5 text-slate-800">{name.trim() || 'Walk-in Customer'}</p>
@@ -493,7 +503,7 @@ export default function InvoiceForm() {
                     </div>
 
                     <div className="mt-2 border-y border-slate-300/90 px-3 py-3">
-                      <div className="ml-auto grid w-[40%] grid-cols-2 items-center text-right">
+                      <div className="ml-auto grid w-full grid-cols-2 items-center text-right sm:w-[40%]">
                         <span className="text-[16px] font-bold text-slate-800">Total</span>
                         <span className="text-[16px] font-bold text-slate-900">${finalTotal.toLocaleString()}</span>
                       </div>
@@ -523,8 +533,8 @@ export default function InvoiceForm() {
                   </div>
                 </div>
 
-                <div className="pointer-events-none absolute -bottom-24 -left-16 h-52 w-[70%] rounded-[50%] bg-slate-300/70" />
-                <div className="pointer-events-none absolute -bottom-20 -right-16 h-48 w-[72%] rounded-[50%] bg-slate-700/90" />
+                <div className="pointer-events-none absolute -bottom-24 -left-16 hidden h-52 w-[70%] rounded-[50%] bg-slate-300/70 sm:block" />
+                <div className="pointer-events-none absolute -bottom-20 -right-16 hidden h-48 w-[72%] rounded-[50%] bg-slate-700/90 sm:block" />
               </div>
             </div>
           </article>
@@ -537,41 +547,40 @@ export default function InvoiceForm() {
             </div>
 
             <div className="flex-1 space-y-5 p-6">
-              <div className="space-y-3">
-                <div className="flex items-center justify-between text-sm font-medium">
-                  <span className="text-slate-500 dark:text-[#a3a3a3]">Subtotal</span>
-                  <span className="text-slate-800 dark:text-[#ededed]">Rs. {subtotal.toLocaleString()}</span>
-                </div>
-
-                {matchedClient && availablePoints > 0 ? (
-                  <div className="border-t border-slate-100 pt-3 dark:border-[#282828]">
-                    <div className="mb-2 flex items-center justify-between">
-                      <span className="flex items-center text-sm font-semibold text-slate-800 dark:text-white">
-                        Redeem Points
-                        <span className="ml-2 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] text-slate-500 dark:bg-[#282828] dark:text-[#a3a3a3]">
-                          Max Rs. {maxDiscount}
-                        </span>
-                      </span>
-                      <label className="relative inline-flex cursor-pointer items-center">
-                        <input
-                          type="checkbox"
-                          checked={usePoints}
-                          onChange={() => setUsePoints((previous) => !previous)}
-                          className="peer sr-only"
-                        />
-                        <div className="after:content-[''] peer h-5 w-9 rounded-full bg-slate-200 after:absolute after:left-[2px] after:top-[2px] after:h-4 after:w-4 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all peer-checked:bg-indigo-500 peer-checked:after:translate-x-full peer-checked:after:border-white dark:bg-[#282828]" />
-                      </label>
-                    </div>
-
-                    {usePoints ? (
-                      <div className="animate-in fade-in flex items-center justify-between text-sm font-medium text-emerald-600 duration-200 dark:text-emerald-400">
-                        <span>Discount Applied</span>
-                        <span>- Rs. {discountAmount.toLocaleString()}</span>
-                      </div>
-                    ) : null}
+              <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4 dark:border-[#282828] dark:bg-[#111111]">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-medium text-slate-500 dark:text-[#a3a3a3]">Subtotal</span>
+                    <span className="font-semibold text-slate-800 dark:text-[#ededed]">Rs. {subtotal.toLocaleString()}</span>
                   </div>
-                ) : null}
+
+                  {usePoints && discountAmount > 0 ? (
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="font-medium text-slate-500 dark:text-[#a3a3a3]">Points Discount</span>
+                      <span className="font-semibold text-emerald-600 dark:text-emerald-400">- Rs. {discountAmount.toLocaleString()}</span>
+                    </div>
+                  ) : null}
+                </div>
               </div>
+
+              {matchedClient && availablePoints > 0 ? (
+                <div className="rounded-xl border border-slate-200 p-4 dark:border-[#282828]">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-semibold text-slate-800 dark:text-white">Redeem Points</span>
+                    <label className="relative inline-flex cursor-pointer items-center">
+                      <input
+                        type="checkbox"
+                        checked={usePoints}
+                        onChange={() => setUsePoints((previous) => !previous)}
+                        className="peer sr-only"
+                      />
+                      <div className="after:content-[''] peer h-5 w-9 rounded-full bg-slate-200 after:absolute after:left-[2px] after:top-[2px] after:h-4 after:w-4 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all peer-checked:bg-indigo-500 peer-checked:after:translate-x-full peer-checked:after:border-white dark:bg-[#282828]" />
+                    </label>
+                  </div>
+
+                  <p className="mt-2 text-xs font-medium text-slate-500 dark:text-[#a3a3a3]">Available: {availablePoints} pts (Max Rs. {maxDiscount})</p>
+                </div>
+              ) : null}
 
               <div className="border-t border-slate-200 pt-5 dark:border-[#333]">
                 <div className="flex items-end justify-between">
@@ -581,35 +590,25 @@ export default function InvoiceForm() {
               </div>
 
               {finalTotal > 0 ? (
-                <div className="mt-4 flex items-center justify-center rounded-xl border border-emerald-100 bg-emerald-50 p-3 dark:border-emerald-500/20 dark:bg-emerald-500/10">
-                  <Sparkles className="mr-2 h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                  <span className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">
-                    Customer earns <strong className="text-emerald-800 dark:text-emerald-100">{pointsEarned} Points</strong>
-                  </span>
+                <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/60 px-4 py-3 dark:border-[#282828] dark:bg-[#111111]">
+                  <span className="text-sm font-medium text-slate-500 dark:text-[#a3a3a3]">Points Earned</span>
+                  <span className="text-sm font-semibold text-slate-800 dark:text-white">{pointsEarned} pts</span>
                 </div>
               ) : null}
             </div>
 
             <div className="space-y-3 p-6 pt-0">
-              {successMessage ? (
-                <p className="rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300">
-                  {successMessage}
-                </p>
-              ) : null}
-
-              {errorMessage ? (
-                <p className="rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-xs font-semibold text-red-600 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300">
-                  {errorMessage}
-                </p>
-              ) : null}
-
               <button
                 type="button"
-                disabled={finalTotal === 0 || !phone || isSaving}
+                disabled={finalTotal === 0 || !phone || isSaving || isInvoiceCreated}
                 onClick={handleGenerateInvoice}
-                className="flex w-full items-center justify-center rounded-xl bg-blue-600 py-3.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-indigo-600 dark:hover:bg-indigo-500"
+                className={`flex w-full items-center justify-center rounded-xl py-3.5 text-sm font-bold text-white shadow-sm transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
+                  isInvoiceCreated
+                    ? 'bg-emerald-600 dark:bg-emerald-500'
+                    : 'bg-blue-600 hover:bg-blue-700 dark:bg-indigo-600 dark:hover:bg-indigo-500'
+                }`}
               >
-                <CheckCircle2 className="mr-2 h-4 w-4" /> {isSaving ? 'Creating...' : 'Create Invoice'}
+                <CheckCircle2 className="mr-2 h-4 w-4" /> {isSaving ? 'Creating...' : isInvoiceCreated ? 'Created' : 'Create Invoice'}
               </button>
               <button
                 type="button"
